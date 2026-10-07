@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}About — NIDS SOC{% endblock %}
+{% block page_title %}About{% endblock %}
+
+{% block content %}
+<div class="page-section">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-9">
+
+      <div class="about-hero mb-4">
+        <div class="about-icon"><i class="bi bi-shield-lock-fill"></i></div>
+        <h1 class="about-title">NIDS Security Operations Dashboard</h1>
+        <p class="about-subtitle">Network Intrusion Detection System — B.Tech CSE Cybersecurity Project</p>
+        <div class="about-badges">
+          <span class="about-badge"><i class="bi bi-mortarboard"></i> ICT Academy Project</span>
+          <span class="about-badge"><i class="bi bi-shield-check"></i> Defensive Cybersecurity</span>
+          <span class="about-badge"><i class="bi bi-cpu"></i> ML + Rule-Based Detection</span>
+        </div>
+      </div>
+
+      <div class="about-section">
+        <h3><i class="bi bi-file-text"></i> Abstract</h3>
+        <p>This Network Intrusion Detection System (NIDS) dashboard is a full-stack cybersecurity application designed to analyze network traffic data, detect suspicious patterns, and generate actionable security alerts. The system demonstrates the intersection of computer networking, cybersecurity principles, machine learning, and modern web development.</p>
+      </div>
+
+      <div class="about-section">
+        <h3><i class="bi bi-layers"></i> System Architecture</h3>
+        <div class="arch-flow">
+          <div class="arch-step">CSV / Demo Data</div>
+          <div class="arch-arrow">↓</div>
+          <div class="arch-step">Validation Layer</div>
+          <div class="arch-arrow">↓</div>
+          <div class="arch-step">Feature Extraction</div>
+          <div class="arch-arrow">↓</div>
+          <div class="arch-step">Rule Engine + ML</div>
+          <div class="arch-arrow">↓</div>
+          <div class="arch-step">Risk Scoring</div>
+          <div class="arch-arrow">↓</div>
+          <div class="arch-step">Alert Generation</div>
+          <div class="arch-arrow">↓</div>
+          <div class="arch-step">SQLite Database</div>
+          <div class="arch-arrow">↓</div>
+          <div class="arch-step">Flask REST API</div>
+          <div class="arch-arrow">↓</div>
+          <div class="arch-step">SOC Dashboard</div>
+        </div>
+      </div>
+
+      <div class="about-section">
+        <h3><i class="bi bi-gear"></i> Detection Methodology</h3>
+        <div class="row gx-3">
+          <div class="col-12 col-md-6 mb-3">
+            <div class="method-card">
+              <h5><i class="bi bi-list-check"></i> Rule-Based Detection</h5>
+              <ul>
+                <li>High Connection Frequency</li>
+                <li>High Packet Rate</li>
+                <li>Large Traffic Volume</li>
+                <li>Abnormal Byte Ratio</li>
+                <li>Suspicious Destination Ports</li>
+                <li>Fast Connection Rate</li>
+                <li>Small Packet Anomaly</li>
+                <li>High Bandwidth Usage</li>
+              </ul>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 mb-3">
+            <div class="method-card">
+              <h5><i class="bi bi-robot"></i> Machine Learning</h5>
+              <ul>
+                <li>Algorithm: Random Forest</li>
+                <li>Classes: Normal / Suspicious / High Risk</li>
+                <li>Features: 15 engineered features</li>
+                <li>Fallback: Rule-based if model unavailable</li>
+                <li>Conservative: ML can only raise, not lower risk</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-section">
+        <h3><i class="bi bi-bar-chart"></i> Risk Score Bands</h3>
+        <div class="risk-bands">
+          <div class="risk-band risk-band-normal"><span class="band-range">0–19</span><span class="band-label">NORMAL</span></div>
+          <div class="risk-band risk-band-low"><span class="band-range">20–39</span><span class="band-label">LOW RISK</span></div>
+          <div class="risk-band risk-band-suspicious"><span class="band-range">40–59</span><span class="band-label">SUSPICIOUS</span></div>
+          <div class="risk-band risk-band-high"><span class="band-range">60–79</span><span class="band-label">HIGH RISK</span></div>
+          <div class="risk-band risk-band-critical"><span class="band-range">80–100</span><span class="band-label">CRITICAL</span></div>
+        </div>
+      </div>
+
+      <div class="about-section">
+        <h3><i class="bi bi-stack"></i> Technology Stack</h3>
+        <div class="tech-grid">
+          <div class="tech-item"><span class="tech-badge">Python 3</span><span class="tech-desc">Core language</span></div>
+          <div class="tech-item"><span class="tech-badge">Flask</span><span class="tech-desc">Web framework</span></div>
+          <div class="tech-item"><span class="tech-badge">SQLite</span><span class="tech-desc">Database</span></div>
+          <div class="tech-item"><span class="tech-badge">Pandas</span><span class="tech-desc">Data processing</span></div>
+          <div class="tech-item"><span class="tech-badge">Scikit-learn</span><span class="tech-desc">ML model</span></div>
+          <div class="tech-item"><span class="tech-badge">Bootstrap 5</span><span class="tech-desc">UI framework</span></div>
+          <div class="tech-item"><span class="tech-badge">Chart.js</span><span class="tech-desc">Visualizations</span></div>
+          <div class="tech-item"><span class="tech-badge">Pytest</span><span class="tech-desc">Testing</span></div>
+        </div>
+      </div>
+
+      <div class="about-section">
+        <h3><i class="bi bi-lock-fill"></i> Security Features</h3>
+        <ul>
+          <li>Parameterized SQL queries (no SQL injection possible)</li>
+          <li>Input validation on all uploaded data</li>
+          <li>File extension and size validation</li>
+          <li>Security headers on all responses</li>
+          <li>Safe error handling (no stack traces to users)</li>
+          <li>No shell execution, no eval(), no exec()</li>
+          <li>No hard-coded secrets (environment variables only)</li>
+          <li>Defensive-only: analyzes supplied data, generates no attacks</li>
+        </ul>
+      </div>
+
+      <div class="about-footer text-muted small text-center mt-4">
+        NIDS SOC Dashboard &mdash; B.Tech Computer Science &amp; Engineering &mdash; ICT Academy Cybersecurity Project
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

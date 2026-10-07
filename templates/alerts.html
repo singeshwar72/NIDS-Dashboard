@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Alerts — NIDS SOC{% endblock %}
+{% block page_title %}Alert Management{% endblock %}
+
+{% block content %}
+<div class="page-section">
+  <!-- Filters -->
+  <div class="filter-bar mb-3">
+    <div class="row gx-2 gy-2 align-items-end">
+      <div class="col-12 col-md-3">
+        <label class="form-label">Search</label>
+        <input type="text" class="form-control form-control-sm dark-input" id="alert-search" placeholder="IP, attack type…" />
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label">Status</label>
+        <select class="form-select form-select-sm dark-input" id="alert-filter-status">
+          <option value="">All</option>
+          <option value="NEW">New</option>
+          <option value="ACKNOWLEDGED">Acknowledged</option>
+          <option value="RESOLVED">Resolved</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label">Severity</label>
+        <select class="form-select form-select-sm dark-input" id="alert-filter-severity">
+          <option value="">All</option>
+          <option value="CRITICAL">Critical</option>
+          <option value="HIGH">High</option>
+          <option value="MEDIUM">Medium</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label">Page Size</label>
+        <select class="form-select form-select-sm dark-input" id="alert-page-size">
+          <option value="25">25</option>
+          <option value="50" selected>50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-3 d-flex gap-2">
+        <button class="btn btn-sm btn-accent w-100" id="btn-alert-filter">
+          <i class="bi bi-funnel"></i> Apply
+        </button>
+        <button class="btn btn-sm btn-outline-secondary w-100" id="btn-alert-clear">
+          <i class="bi bi-x-circle"></i> Clear
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card">
+    <div class="table-header d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-bell-fill"></i> Alerts <span class="text-muted ms-2" id="alert-count">(loading…)</span></span>
+    </div>
+    <div class="table-responsive">
+      <table class="table nids-table" id="alerts-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Source IP</th>
+            <th>Destination IP</th>
+            <th>Attack Type</th>
+            <th>Severity</th>
+            <th>Risk Score</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="alerts-tbody">
+          <tr><td colspan="8" class="text-center text-muted py-4">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-footer d-flex justify-content-between align-items-center p-2">
+      <span class="text-muted small" id="alerts-pagination-info"></span>
+      <div class="btn-group" id="alerts-pagination"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Alert Detail Modal -->
+<div class="modal fade" id="alert-detail-modal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content dark-modal">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-bell"></i> Alert Detail</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="alert-detail-body">Loading…</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/alerts.js') }}"></script>
+{% endblock %}

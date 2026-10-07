@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Upload Dataset — NIDS SOC{% endblock %}
+{% block page_title %}Upload Dataset{% endblock %}
+
+{% block content %}
+<div class="page-section">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+
+      <div class="upload-card">
+        <div class="upload-card-header">
+          <i class="bi bi-cloud-upload-fill"></i> Upload Network Traffic CSV
+        </div>
+        <div class="upload-card-body">
+          <!-- Drop Zone -->
+          <div class="drop-zone" id="drop-zone">
+            <div class="drop-zone-icon"><i class="bi bi-file-earmark-spreadsheet"></i></div>
+            <div class="drop-zone-text">Drag & drop CSV file here, or click to browse</div>
+            <div class="drop-zone-hint">Max size: 10 MB · CSV format only</div>
+            <input type="file" id="file-input" accept=".csv" class="d-none" />
+          </div>
+
+          <!-- File Info -->
+          <div id="file-info" class="file-info d-none">
+            <div class="file-info-row">
+              <i class="bi bi-file-earmark-check text-success"></i>
+              <span id="file-name-display">–</span>
+              <span id="file-size-display" class="text-muted ms-2">–</span>
+              <button class="btn btn-sm btn-outline-danger ms-auto" id="btn-remove-file">
+                <i class="bi bi-x"></i> Remove
+              </button>
+            </div>
+          </div>
+
+          <!-- Upload Button -->
+          <div class="mt-3 d-flex gap-2">
+            <button class="btn btn-accent" id="btn-upload" disabled>
+              <i class="bi bi-upload"></i> Upload & Analyze
+            </button>
+          </div>
+
+          <!-- Progress -->
+          <div id="upload-progress" class="mt-3 d-none">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <div class="spinner-border spinner-border-sm text-info"></div>
+              <span id="upload-status-text">Processing…</span>
+            </div>
+            <div class="progress">
+              <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" style="width: 100%"></div>
+            </div>
+          </div>
+
+          <!-- Result -->
+          <div id="upload-result" class="mt-3 d-none"></div>
+        </div>
+      </div>
+
+      <!-- Required Columns -->
+      <div class="info-card mt-3">
+        <div class="info-card-header"><i class="bi bi-columns-gap"></i> Required CSV Columns</div>
+        <div class="info-card-body">
+          <p class="text-muted mb-2">Your CSV must include these columns (case-insensitive):</p>
+          <div class="col-list">
+            <span class="col-badge required">source_ip</span>
+            <span class="col-badge required">destination_ip</span>
+            <span class="col-badge optional">timestamp</span>
+            <span class="col-badge optional">source_port</span>
+            <span class="col-badge optional">destination_port</span>
+            <span class="col-badge optional">protocol</span>
+            <span class="col-badge optional">packet_count</span>
+            <span class="col-badge optional">packet_size</span>
+            <span class="col-badge optional">duration</span>
+            <span class="col-badge optional">bytes_sent</span>
+            <span class="col-badge optional">bytes_received</span>
+            <span class="col-badge optional">connection_count</span>
+          </div>
+          <p class="text-muted mt-2 small">
+            <span class="col-badge required">Red</span> = required &nbsp;
+            <span class="col-badge optional">Green</span> = optional (default 0 if missing)
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+{% endblock %}

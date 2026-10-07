@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}Detection History — NIDS SOC{% endblock %}
+{% block page_title %}Detection History{% endblock %}
+
+{% block content %}
+<div class="page-section">
+  <div class="filter-bar mb-3">
+    <div class="row gx-2 gy-2 align-items-end">
+      <div class="col-12 col-md-4">
+        <label class="form-label">Search Session</label>
+        <input type="text" class="form-control form-control-sm dark-input" id="history-search" placeholder="Session name, filename…" />
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label">Page Size</label>
+        <select class="form-select form-select-sm dark-input" id="history-page-size">
+          <option value="10">10</option>
+          <option value="20" selected>20</option>
+          <option value="50">50</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-3 d-flex gap-2">
+        <button class="btn btn-sm btn-accent w-100" id="btn-history-search">
+          <i class="bi bi-search"></i> Search
+        </button>
+        <button class="btn btn-sm btn-outline-secondary w-100" id="btn-history-clear">
+          <i class="bi bi-x-circle"></i> Clear
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-header">
+      <span><i class="bi bi-clock-history"></i> Scan Sessions <span class="text-muted ms-2" id="history-count">(loading…)</span></span>
+    </div>
+    <div class="table-responsive">
+      <table class="table nids-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Session Name</th>
+            <th>File</th>
+            <th>Total</th>
+            <th>Normal</th>
+            <th>Suspicious</th>
+            <th>High Risk</th>
+            <th>Critical</th>
+            <th>Alerts</th>
+            <th>Mode</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="history-tbody">
+          <tr><td colspan="12" class="text-center text-muted py-4">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-footer d-flex justify-content-between align-items-center p-2">
+      <span class="text-muted small" id="history-pagination-info"></span>
+      <div class="btn-group" id="history-pagination"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Delete Modal -->
+<div class="modal fade" id="confirm-delete-modal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content dark-modal">
+      <div class="modal-header">
+        <h5 class="modal-title text-danger"><i class="bi bi-trash3"></i> Delete Session</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete session <strong id="delete-session-name"></strong>?</p>
+        <p class="text-danger small">This will permanently delete all associated traffic records and alerts.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger" id="btn-confirm-delete">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+<script>
+  // history.js is inlined here to keep file count minimal
+  let historyPage = 1;
+  let historyPageSize = 20;
+  let historySearch = '';
+  let deleteTargetId = null;
+
+  async function loadHistory() {
+    const tbody = document.getElementById('history-tbody');
+    tbody.innerHTML = '<tr><td colspan="12" class="text-center text-muted py-4">Loading…</td></tr>';
+    try {
+      const params = new URLSearchParams({ page: historyPage, page_size: historyPageSize });
+      const res = await fetch('/api/history?' + params);
+      const data = await res.json();
+      renderHistory(data);
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="12" class="text-center text-danger">Failed to load history.</td></tr>';
+    }
+  }
+
+  function renderHistory(data) {
+    const tbody = document.getElementById('history-tbody');
+    const sessions = data.sessions || [];
+    document.getElementById('history-count').textContent = `(${data.total} sessions)`;
+    document.getElementById('history-pagination-info').textContent =
+      `Page ${data.page} of ${data.total_pages}`;
+
+    if (!sessions.length) {
+      tbody.innerHTML = '<tr><td colspan="12" class="text-center text-muted py-4">No sessions found. Load the demo dataset or upload a CSV.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = sessions.filter(s => {
+      if (!historySearch) return true;
+      const q = historySearch.toLowerCase();
+      return (s.session_name || '').toLowerCase().includes(q) ||
+             (s.filename || '').toLowerCase().includes(q);
+    }).map(s => `
+      <tr>
+        <td>${s.id}</td>
+        <td>${s.session_name || '–'}</td>
+        <td class="text-muted small">${s.filename || '–'}</td>
+        <td>${s.total_records}</td>
+        <td><span class="badge badge-normal">${s.normal_count}</span></td>
+        <td><span class="badge badge-suspicious">${s.suspicious_count}</span></td>
+        <td><span class="badge badge-high">${s.high_risk_count}</span></td>
+        <td><span class="badge badge-critical">${s.critical_count}</span></td>
+        <td>${(s.high_risk_count || 0) + (s.critical_count || 0)}</td>
+        <td class="small text-muted">${s.detection_mode || 'Rule-Based'}</td>
+        <td class="small text-muted">${(s.created_at || '').slice(0, 16)}</td>
+        <td>
+          <button class="btn btn-xs btn-outline-danger" onclick="confirmDelete(${s.id}, '${(s.session_name||'').replace(/'/g,'')}')" title="Delete">
+            <i class="bi bi-trash3"></i>
+          </button>
+        </td>
+      </tr>`).join('');
+
+    renderHistoryPagination(data);
+  }
+
+  function renderHistoryPagination(data) {
+    const container = document.getElementById('history-pagination');
+    if (!container) return;
+    let html = '';
+    html += `<button class="btn btn-sm btn-outline-secondary" ${data.page <= 1 ? 'disabled' : ''} onclick="historyPage--;loadHistory()"><i class="bi bi-chevron-left"></i></button>`;
+    html += `<button class="btn btn-sm btn-outline-secondary" ${data.page >= data.total_pages ? 'disabled' : ''} onclick="historyPage++;loadHistory()"><i class="bi bi-chevron-right"></i></button>`;
+    container.innerHTML = html;
+  }
+
+  function confirmDelete(id, name) {
+    deleteTargetId = id;
+    document.getElementById('delete-session-name').textContent = name;
+    new bootstrap.Modal(document.getElementById('confirm-delete-modal')).show();
+  }
+
+  document.getElementById('btn-confirm-delete')?.addEventListener('click', async () => {
+    if (!deleteTargetId) return;
+    try {
+      const res = await fetch(`/api/history/${deleteTargetId}`, { method: 'DELETE' });
+      const data = await res.json();
+      bootstrap.Modal.getInstance(document.getElementById('confirm-delete-modal'))?.hide();
+      if (data.success) {
+        NIDS.showToast('Session deleted successfully.', 'success');
+        loadHistory();
+      } else {
+        NIDS.showToast(data.error || 'Delete failed.', 'danger');
+      }
+    } catch (e) {
+      NIDS.showToast('Delete request failed.', 'danger');
+    }
+  });
+
+  document.getElementById('btn-history-search')?.addEventListener('click', () => {
+    historySearch = document.getElementById('history-search').value.trim();
+    historyPage = 1;
+    loadHistory();
+  });
+
+  document.getElementById('btn-history-clear')?.addEventListener('click', () => {
+    document.getElementById('history-search').value = '';
+    historySearch = '';
+    historyPage = 1;
+    loadHistory();
+  });
+
+  document.getElementById('history-page-size')?.addEventListener('change', e => {
+    historyPageSize = parseInt(e.target.value);
+    historyPage = 1;
+    loadHistory();
+  });
+
+  function refreshPage() { loadHistory(); }
+  loadHistory();
+</script>
+{% endblock %}

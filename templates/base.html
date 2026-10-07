@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}NIDS Security Operations Dashboard{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-icon"><i class="bi bi-shield-lock-fill"></i></span>
+      <span class="brand-text">NIDS<span class="brand-accent"> SOC</span></span>
+    </div>
+    <ul class="sidebar-nav">
+      <li class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
+          <i class="bi bi-speedometer2"></i><span>Dashboard</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'traffic' %}active{% endif %}" href="{{ url_for('traffic') }}">
+          <i class="bi bi-activity"></i><span>Traffic Monitor</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'alerts' %}active{% endif %}" href="{{ url_for('alerts') }}">
+          <i class="bi bi-bell-fill"></i><span>Alerts</span>
+          <span class="badge-alert" id="sidebar-alert-count"></span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'upload' %}active{% endif %}" href="{{ url_for('upload') }}">
+          <i class="bi bi-upload"></i><span>Upload Dataset</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'history' %}active{% endif %}" href="{{ url_for('history') }}">
+          <i class="bi bi-clock-history"></i><span>Detection History</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}" href="{{ url_for('about') }}">
+          <i class="bi bi-info-circle"></i><span>About</span>
+        </a>
+      </li>
+    </ul>
+    <div class="sidebar-footer">
+      <span class="system-status">
+        <span class="status-dot online"></span> SYSTEM ONLINE
+      </span>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main-wrapper" id="main-wrapper">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <button class="btn-sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar">
+        <i class="bi bi-list"></i>
+      </button>
+      <div class="topbar-title">{% block page_title %}NIDS Security Operations Dashboard{% endblock %}</div>
+      <div class="topbar-meta">
+        <span class="meta-item" id="topbar-detection-mode">
+          <i class="bi bi-cpu"></i> <span id="detection-mode-label">Loading…</span>
+        </span>
+        <span class="meta-item" id="topbar-last-updated">
+          <i class="bi bi-clock"></i> <span id="last-updated-label">–</span>
+        </span>
+        <button class="btn btn-sm btn-outline-cyan" id="global-refresh-btn" title="Refresh dashboard stats">
+          <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+      </div>
+    </header>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Page Content -->
+    <main class="page-content">
+      {% if error is defined and error %}
+        <div class="alert alert-danger">{{ error }}</div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <script>
+    // Global utilities
+    const NIDS = {
+      showToast(message, type = 'success') {
+        const bg = type === 'success' ? 'bg-success' : type === 'danger' ? 'bg-danger' : 'bg-warning';
+        const id = 'toast-' + Date.now();
+        const html = `<div id="${id}" class="toast align-items-center text-white ${bg} border-0" role="alert">
+          <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+          </div>
+        </div>`;
+        document.getElementById('toast-container').insertAdjacentHTML('beforeend', html);
+        const el = document.getElementById(id);
+        const t = new bootstrap.Toast(el, { delay: 4000 });
+        t.show();
+        el.addEventListener('hidden.bs.toast', () => el.remove());
+      },
+      formatDateTime(iso) {
+        if (!iso) return '–';
+        return iso.replace('T', ' ').slice(0, 19);
+      },
+      classColor(cls) {
+        const map = {
+          'NORMAL': 'badge-normal',
+          'LOW RISK': 'badge-low',
+          'SUSPICIOUS': 'badge-suspicious',
+          'HIGH RISK': 'badge-high',
+          'CRITICAL': 'badge-critical',
+        };
+        return map[cls] || 'badge-normal';
+      },
+      severityColor(sev) {
+        const map = { 'CRITICAL': 'badge-critical', 'HIGH': 'badge-high', 'MEDIUM': 'badge-suspicious', 'LOW': 'badge-low', 'INFO': 'badge-normal' };
+        return map[sev] || 'badge-normal';
+      },
+      statusColor(s) {
+        const map = { 'NEW': 'badge-critical', 'ACKNOWLEDGED': 'badge-suspicious', 'RESOLVED': 'badge-normal' };
+        return map[s] || 'badge-normal';
+      },
+    };
+
+    // Refresh global topbar stats
+    async function refreshTopbar() {
+      try {
+        const res = await fetch('/api/dashboard-stats');
+        const data = await res.json();
+        const dm = document.getElementById('detection-mode-label');
+        const lu = document.getElementById('last-updated-label');
+        if (dm) dm.textContent = data.detection_mode || 'Rule-Based';
+        if (lu) lu.textContent = data.last_updated || '–';
+        // Update sidebar alert badge
+        const badge = document.getElementById('sidebar-alert-count');
+        if (badge && data.new_alerts > 0) {
+          badge.textContent = data.new_alerts;
+          badge.style.display = 'inline';
+        } else if (badge) {
+          badge.style.display = 'none';
+        }
+      } catch (e) { /* silent */ }
+    }
+
+    document.getElementById('global-refresh-btn')?.addEventListener('click', () => {
+      refreshTopbar();
+      if (typeof refreshPage === 'function') refreshPage();
+    });
+
+    document.getElementById('sidebar-toggle')?.addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+      document.getElementById('main-wrapper').classList.toggle('sidebar-collapsed');
+    });
+
+    refreshTopbar();
+    setInterval(refreshTopbar, 30000);
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

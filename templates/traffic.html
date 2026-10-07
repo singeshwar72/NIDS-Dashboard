@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Traffic Monitor — NIDS SOC{% endblock %}
+{% block page_title %}Traffic Monitor{% endblock %}
+
+{% block content %}
+<div class="page-section">
+  <!-- Filters -->
+  <div class="filter-bar mb-3">
+    <div class="row gx-2 gy-2 align-items-end">
+      <div class="col-12 col-md-3">
+        <label class="form-label">Search IP</label>
+        <input type="text" class="form-control form-control-sm dark-input" id="search-ip" placeholder="e.g. 192.168.1.10" />
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label">Classification</label>
+        <select class="form-select form-select-sm dark-input" id="filter-classification">
+          <option value="">All</option>
+          <option value="NORMAL">Normal</option>
+          <option value="SUSPICIOUS">Suspicious</option>
+          <option value="HIGH RISK">High Risk</option>
+          <option value="CRITICAL">Critical</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label">Protocol</label>
+        <select class="form-select form-select-sm dark-input" id="filter-protocol">
+          <option value="">All</option>
+          <option value="TCP">TCP</option>
+          <option value="UDP">UDP</option>
+          <option value="ICMP">ICMP</option>
+          <option value="HTTP">HTTP</option>
+          <option value="HTTPS">HTTPS</option>
+          <option value="DNS">DNS</option>
+          <option value="SSH">SSH</option>
+          <option value="FTP">FTP</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label">Page Size</label>
+        <select class="form-select form-select-sm dark-input" id="page-size">
+          <option value="25">25</option>
+          <option value="50" selected>50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-3 d-flex gap-2">
+        <button class="btn btn-sm btn-accent w-100" id="btn-apply-filters">
+          <i class="bi bi-funnel"></i> Apply
+        </button>
+        <button class="btn btn-sm btn-outline-secondary w-100" id="btn-clear-filters">
+          <i class="bi bi-x-circle"></i> Clear
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card">
+    <div class="table-header d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-table"></i> Traffic Records <span class="text-muted ms-2" id="traffic-count">(loading…)</span></span>
+    </div>
+    <div class="table-responsive">
+      <table class="table nids-table" id="traffic-table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Source IP</th>
+            <th>Destination IP</th>
+            <th>Protocol</th>
+            <th>Src Port</th>
+            <th>Dst Port</th>
+            <th>Packets</th>
+            <th>Bytes</th>
+            <th>Risk Score</th>
+            <th>Classification</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="traffic-tbody">
+          <tr><td colspan="11" class="text-center text-muted py-4">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- Pagination -->
+    <div class="table-footer d-flex justify-content-between align-items-center p-2">
+      <span class="text-muted small" id="traffic-pagination-info"></span>
+      <div class="btn-group" id="traffic-pagination"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal fade" id="traffic-detail-modal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content dark-modal">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-info-circle"></i> Traffic Record Detail</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="traffic-detail-body">Loading…</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/traffic.js') }}"></script>
+{% endblock %}

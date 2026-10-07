@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — NIDS SOC{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+
+  <!-- Demo Controls -->
+  <div class="row mb-3 gx-3">
+    <div class="col-12 d-flex flex-wrap gap-2 align-items-center">
+      <button class="btn btn-accent" id="btn-load-demo">
+        <i class="bi bi-play-circle-fill"></i> Load Demo Dataset
+      </button>
+      <button class="btn btn-outline-cyan" id="btn-start-monitoring">
+        <i class="bi bi-radar"></i> Start Demo Monitoring
+      </button>
+      <button class="btn btn-outline-danger d-none" id="btn-stop-monitoring">
+        <i class="bi bi-stop-circle"></i> Stop Monitoring
+      </button>
+      <span class="ms-2 text-muted small" id="monitoring-status"></span>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="row gx-3 mb-4">
+    <div class="col-6 col-md-4 col-lg mb-3">
+      <div class="kpi-card">
+        <div class="kpi-label"><i class="bi bi-wifi"></i> Total Traffic</div>
+        <div class="kpi-value" id="kpi-total">–</div>
+        <div class="kpi-sub">Records analyzed</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg mb-3">
+      <div class="kpi-card kpi-normal">
+        <div class="kpi-label"><i class="bi bi-check-circle"></i> Normal</div>
+        <div class="kpi-value" id="kpi-normal">–</div>
+        <div class="kpi-sub" id="kpi-normal-pct">–</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg mb-3">
+      <div class="kpi-card kpi-suspicious">
+        <div class="kpi-label"><i class="bi bi-exclamation-triangle"></i> Suspicious</div>
+        <div class="kpi-value" id="kpi-suspicious">–</div>
+        <div class="kpi-sub" id="kpi-suspicious-pct">–</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg mb-3">
+      <div class="kpi-card kpi-high">
+        <div class="kpi-label"><i class="bi bi-exclamation-octagon"></i> High Risk</div>
+        <div class="kpi-value" id="kpi-high">–</div>
+        <div class="kpi-sub" id="kpi-high-pct">–</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg mb-3">
+      <div class="kpi-card kpi-critical">
+        <div class="kpi-label"><i class="bi bi-shield-x"></i> Critical Alerts</div>
+        <div class="kpi-value" id="kpi-critical">–</div>
+        <div class="kpi-sub" id="kpi-critical-pct">–</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row 1 -->
+  <div class="row gx-3 mb-4">
+    <div class="col-12 col-lg-5 mb-3">
+      <div class="chart-card">
+        <div class="chart-header">
+          <span><i class="bi bi-pie-chart-fill"></i> Traffic Classification</span>
+        </div>
+        <div class="chart-body">
+          <canvas id="chart-classification"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-7 mb-3">
+      <div class="chart-card">
+        <div class="chart-header">
+          <span><i class="bi bi-bar-chart-fill"></i> Attack Type Distribution</span>
+        </div>
+        <div class="chart-body">
+          <canvas id="chart-attack-types"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row 2 -->
+  <div class="row gx-3 mb-4">
+    <div class="col-12 col-lg-6 mb-3">
+      <div class="chart-card">
+        <div class="chart-header">
+          <span><i class="bi bi-graph-up"></i> Alerts Over Time (7 days)</span>
+        </div>
+        <div class="chart-body">
+          <canvas id="chart-alerts-time"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6 mb-3">
+      <div class="chart-card">
+        <div class="chart-header">
+          <span><i class="bi bi-distribution"></i> Risk Score Distribution</span>
+        </div>
+        <div class="chart-body">
+          <canvas id="chart-risk-dist"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Source IPs -->
+  <div class="row gx-3 mb-4">
+    <div class="col-12">
+      <div class="chart-card">
+        <div class="chart-header">
+          <span><i class="bi bi-globe"></i> Top Source IPs by Connection Count</span>
+        </div>
+        <div class="chart-body chart-body-tall">
+          <canvas id="chart-top-ips"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

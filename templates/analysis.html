@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% block title %}Intrusion Analysis #{{ record.id }} — NIDS SOC{% endblock %}
+{% block page_title %}Intrusion Analysis{% endblock %}
+
+{% block content %}
+<div class="page-section">
+  <div class="mb-3">
+    <a href="{{ url_for('traffic') }}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Back to Traffic Monitor
+    </a>
+  </div>
+
+  <div class="row gx-3">
+    <!-- Risk Score Card -->
+    <div class="col-12 col-md-4 mb-3">
+      <div class="analysis-score-card">
+        <div class="score-label">RISK SCORE</div>
+        {% set score = record.risk_score | float %}
+        {% if score >= 80 %}
+          {% set score_class = 'score-critical' %}
+        {% elif score >= 60 %}
+          {% set score_class = 'score-high' %}
+        {% elif score >= 40 %}
+          {% set score_class = 'score-suspicious' %}
+        {% elif score >= 20 %}
+          {% set score_class = 'score-low' %}
+        {% else %}
+          {% set score_class = 'score-normal' %}
+        {% endif %}
+        <div class="score-value {{ score_class }}">{{ "%.1f"|format(score) }}<span class="score-max">/100</span></div>
+        <div class="classification-badge {{ NIDS_class_color(record.classification) }} mt-2">
+          {{ record.classification }}
+        </div>
+        <div class="mt-3 text-muted small">
+          Attack Type: <strong class="text-light">{{ record.attack_type or 'NONE' }}</strong>
+        </div>
+        {% if record.detection_reason %}
+        <div class="risk-meter mt-3">
+          <div class="risk-fill" style="width: {{ [score, 100] | min }}%"></div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Traffic Details -->
+    <div class="col-12 col-md-8 mb-3">
+      <div class="analysis-card">
+        <div class="analysis-card-header"><i class="bi bi-info-circle"></i> Traffic Information</div>
+        <div class="analysis-card-body">
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label">Source IP</span>
+              <span class="detail-value text-cyan">{{ record.source_ip }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Destination IP</span>
+              <span class="detail-value text-cyan">{{ record.destination_ip }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Protocol</span>
+              <span class="detail-value">{{ record.protocol }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Source Port</span>
+              <span class="detail-value">{{ record.source_port }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Destination Port</span>
+              <span class="detail-value">{{ record.destination_port }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Packet Count</span>
+              <span class="detail-value">{{ record.packet_count | int }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Packet Size</span>
+              <span class="detail-value">{{ record.packet_size | int }} bytes</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Duration</span>
+              <span class="detail-value">{{ "%.2f"|format(record.duration | float) }}s</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Bytes Sent</span>
+              <span class="detail-value">{{ "{:,}".format(record.bytes_sent | int) }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Bytes Received</span>
+              <span class="detail-value">{{ "{:,}".format(record.bytes_received | int) }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Connection Count</span>
+              <span class="detail-value">{{ record.connection_count | int }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Timestamp</span>
+              <span class="detail-value">{{ record.timestamp }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Computed Features -->
+    <div class="col-12 col-md-6 mb-3">
+      <div class="analysis-card">
+        <div class="analysis-card-header"><i class="bi bi-cpu"></i> Computed Features</div>
+        <div class="analysis-card-body">
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label">Packets/sec</span>
+              <span class="detail-value">{{ "%.2f"|format(record.packets_per_second | float) }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Bytes/sec</span>
+              <span class="detail-value">{{ "%.0f"|format(record.bytes_per_second | float) }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Byte Ratio</span>
+              <span class="detail-value">{{ "%.3f"|format(record.byte_ratio | float) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detection Results -->
+    <div class="col-12 col-md-6 mb-3">
+      <div class="analysis-card">
+        <div class="analysis-card-header"><i class="bi bi-shield-check"></i> Detection Results</div>
+        <div class="analysis-card-body">
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label">Detection Mode</span>
+              <span class="detail-value">Rule-Based</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Classification</span>
+              <span class="detail-value">{{ record.classification }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Attack Type</span>
+              <span class="detail-value">{{ record.attack_type or 'NONE' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detection Reasons -->
+    <div class="col-12 mb-3">
+      <div class="analysis-card">
+        <div class="analysis-card-header"><i class="bi bi-list-ul"></i> Detection Reasons</div>
+        <div class="analysis-card-body">
+          {% if record.detection_reason %}
+            {% for reason in record.detection_reason.split(' | ') %}
+              <div class="reason-item">
+                <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                {{ reason }}
+              </div>
+            {% endfor %}
+          {% else %}
+            <p class="text-muted">No anomalies detected. Traffic pattern within normal parameters.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="col-12 mb-3">
+      <div class="analysis-card">
+        <div class="analysis-card-header"><i class="bi bi-lightbulb"></i> Recommendations</div>
+        <div class="analysis-card-body">
+          {% set score = record.risk_score | float %}
+          {% if score >= 80 %}
+            <div class="rec-item rec-critical">
+              <strong>CRITICAL:</strong> Immediately isolate the source IP <code>{{ record.source_ip }}</code> and investigate for active intrusion. Review all connections from this host in the last 24 hours.
+            </div>
+          {% elif score >= 60 %}
+            <div class="rec-item rec-high">
+              <strong>HIGH RISK:</strong> Block or rate-limit traffic from <code>{{ record.source_ip }}</code>. Conduct forensic analysis. Review firewall rules for port {{ record.destination_port }}.
+            </div>
+          {% elif score >= 40 %}
+            <div class="rec-item rec-suspicious">
+              <strong>SUSPICIOUS:</strong> Monitor this source IP closely. Consider adding to a watchlist. Verify if this traffic pattern is authorized.
+            </div>
+          {% else %}
+            <div class="rec-item rec-normal">
+              <strong>NORMAL:</strong> No action required. Traffic is within expected parameters.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/analysis.js') }}"></script>
+{% endblock %}
